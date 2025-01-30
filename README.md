@@ -34,7 +34,3 @@ python src/main.py
 ## Links
 
 [github_author](https://github.com/Diegoomal)
-
-[tutorial](https://www.youtube.com/watch?v=D96wb46mjIQ)
-
-[reference](https://github.com/Diegoomal/pygame-simple-3D-engine)
