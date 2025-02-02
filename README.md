@@ -1,34 +1,30 @@
-# Pygame 3D Engine
+# Pygame 3D ViEngine
+
+<<<descrição>>>
+
+## simple implementation
+
+``` notebooks/main.ipynb ```
 
 ## Create ENV
 
-```
-conda env create -n pg3d-env -f ./env.yml
-```
+``` conda env create -n 3d-viwer-env -f ./env.yml ```
 
 ## Update ENV
 
-```
-conda env update -n pg3d-env -f ./env.yml
-```
+``` conda env update -n 3d-viwer-env -f ./env.yml ```
 
 ## Remove ENV
 
-```
-conda env remove --n pg3d-env
-```
+``` conda env remove --n 3d-viwer-env ```
 
 ## Activate ENV
 
-```
-conda activate pg3d-env
-```
+``` conda activate 3d-viwer-env ```
 
 ## RUN
 
-```
-python src/main.py
-```
+``` python src/main.py ```
 
 
 ## Links
