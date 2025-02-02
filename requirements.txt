@@ -13,13 +13,8 @@ widgetsnbextension==4.0.12
 
 # components
 pygame==2.5.2
-numpy<1.25,>=1.21
-# numba==0.57.1
 numba==0.61.0
-
-# custom components
-# git+https://github.com/Diegoomal/3DFM.git
-
 scipy==1.15.1
 pillow==11.1.0
+numpy<1.25,>=1.21
 # opencv-python==4.11.0.86
