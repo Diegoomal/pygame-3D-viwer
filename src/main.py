@@ -140,7 +140,7 @@ class Polygon:
             np.asarray(self.vertices)
             @ camera.get_camera_matrix()
             @ camera.get_projection_matrix()
-        ) 
+        )
         
         self.transformed_vertices_3d = transformed_vertices.copy()
 
@@ -199,7 +199,7 @@ class FileManager:
             for line in f:
                 if line.startswith('v '):  # Parse vertices
                     self.vertices.append([float(i) for i in line.split()[1:]] + [1])
-                elif line.startswith('f'):  # Parse faces
+                elif line.startswith('f'): # Parse faces
                     self.faces.append([int(f.split('/')[0]) - 1 for f in line.split()[1:]])
         return self
 
@@ -242,8 +242,10 @@ class App:
         self.screen = pg.display.set_mode((width, height))
 
         self.polygon: Polygon = polygon
-        self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
+        self.polygon.vertices = self.polygon.vertices @ MatrixOperations.scale(0.25)
+
         self.render: Render = Render(width=width, height=height)
+        self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
 
     def update(self):
 
@@ -251,11 +253,12 @@ class App:
         for event in pg.event.get(): 
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE): pg.quit(); exit()
 
-        camera: Camera = Camera(position=np.array([0, 0, -5, 1]))
+        # camera: Camera = Camera(position=np.array([0, 0, -5, 1]))
 
         self.polygon.update()
-        self.polygon.process(camera)
-    
+        self.polygon.process(self.camera)
+        
+
     def draw(self):
         self.screen.fill( pg.Color('darkslategray') )
         self.render.polygon_to_screen(self.screen, self.polygon)
