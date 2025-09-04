@@ -1,5 +1,9 @@
 # Import required libraries
-from engine import *
+from file_manager import *
+from camera import *
+from Polygon import *
+from render import *
+
 
 class App:
 
