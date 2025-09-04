@@ -17,10 +17,12 @@ class App:
         self.polygon: Polygon = polygon
         self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
 
-        self.render: Render = Render(width=width, height=height)
-
-        # texture = pg.image.load('./assets/textures/white.png').convert()
-        # self.render: Render = Render(width=width, height=height, texture=texture)
+        # wired
+        # self.render: Render = Render(width=width, height=height)
+        
+        # textured
+        texture = pg.image.load('./assets/textures/white.png').convert()
+        self.render: Render = Render(width=width, height=height, texture=texture)
 
     def update(self):
 
@@ -48,5 +50,7 @@ class App:
 
 # Entry point
 if __name__ == '__main__':
+    
     polygon: Polygon = FileManager('./assets/models/suzanne/model.obj').load().get_polygon()
+    
     App(polygon=polygon).run()
