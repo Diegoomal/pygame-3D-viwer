@@ -1,7 +1,7 @@
 # Import required libraries
 from file_manager import *
 from camera import *
-from Polygon import *
+from polygon import *
 from render import *
 
 
@@ -19,7 +19,7 @@ class App:
 
         # wired
         # self.render: Render = Render(width=width, height=height)
-        
+
         # textured
         texture = pg.image.load('./assets/textures/white.png').convert()
         self.render: Render = Render(width=width, height=height, texture=texture)

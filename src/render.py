@@ -3,7 +3,7 @@ import numpy as np      # type: ignore
 import pygame as pg     # type: ignore
 import pygame.gfxdraw as gfx # type: ignore
 
-from Polygon import *
+from polygon import *
 
 class Render:
 

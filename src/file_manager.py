@@ -1,5 +1,5 @@
 # Import required libraries
-from Polygon import *
+from polygon import *
 
 class FileManager:
 
