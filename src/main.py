@@ -1,8 +1,10 @@
 # Import required libraries
 import math
 import numpy as np      # type: ignore
-import pygame as pg     # type: ignore
 from numba import njit  # type: ignore
+import pygame as pg     # type: ignore
+import pygame.gfxdraw as gfx # type: ignore
+
 
 class MatrixOperations:
     
@@ -126,9 +128,9 @@ class Camera:
 class Polygon:
 
     def __init__(self, faces:list[list[int]]=[], vertices:list[list[float]]=[], speed:float=0.01):
-        self.faces:    list[list[int  ]] = faces
-        self.vertices: list[list[float]] = vertices
-        self.speed: float = speed
+        self.faces:     list[list[int  ]]   = faces
+        self.vertices:  list[list[float]]   = vertices
+        self.speed:     float               = speed
 
     def process(self, camera: Camera) -> 'Polygon':
 
@@ -217,20 +219,26 @@ class FileManager:
 
 class Render:
 
-    def __init__(self, width:int=1600, height:int=900):
-        self.width=width
-        self.height=height
+    def __init__(self, width:int=1600, height:int=900, texture:pg.Surface|None=None):
+        self.width = width
+        self.height = height
+        self.texture = texture
 
     def polygon_to_screen(self, screen, polygon:Polygon):
-
-        if polygon is None: raise ValueError("Polygon cannot be None")
+        if polygon is None:
+            raise ValueError("Polygon cannot be None")
 
         faces, tvs2d = polygon.faces, polygon.transformed_vertices_2d
 
         for face in faces:
-            polygon = np.array([tvs2d[i] for i in face])
-            if not MatrixOperations.is_out_of_bounds(polygon, self.width, self.height):
-                pg.draw.polygon(screen, pg.Color('orange'), polygon, 1)
+            pts = np.array([tvs2d[i] for i in face])
+            if not MatrixOperations.is_out_of_bounds(pts, self.width, self.height):
+                if self.texture is None:
+                    # wireframe
+                    pg.draw.polygon(screen, pg.Color('orange'), pts, 1)
+                else:
+                    # textured (sem UV → só mapeia textura inteira no polígono)
+                    gfx.textured_polygon(screen, pts.astype(int), self.texture, 0, 0)
 
 class App:
 
@@ -243,7 +251,11 @@ class App:
 
         self.polygon: Polygon = polygon
         self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
-        self.render: Render = Render(width=width, height=height)
+
+        # self.render: Render = Render(width=width, height=height)
+
+        texture = pg.image.load('./assets/textures/white.png').convert()
+        self.render: Render = Render(width=width, height=height, texture=texture)
 
     def update(self):
 
@@ -271,5 +283,5 @@ class App:
 
 # Entry point
 if __name__ == '__main__':
-    polygon: Polygon = FileManager('./models/suzanne/model.obj').load().get_polygon()
+    polygon: Polygon = FileManager('./assets/models/suzanne/model.obj').load().get_polygon()
     App(polygon=polygon).run()
