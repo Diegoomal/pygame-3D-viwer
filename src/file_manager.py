@@ -11,9 +11,9 @@ class FileManager:
     def load(self) -> 'FileManager':
         with open(self.filepath) as f:
             for line in f:
-                if line.startswith('v '):  # Parse vertices
+                if line.startswith('v '):                                       # Parse vertices
                     self.vertices.append([float(i) for i in line.split()[1:]] + [1])
-                elif line.startswith('f'):  # Parse faces
+                elif line.startswith('f'):                                      # Parse faces
                     self.faces.append([int(f.split('/')[0]) - 1 for f in line.split()[1:]])
         return self
 

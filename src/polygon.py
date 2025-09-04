@@ -44,7 +44,8 @@ class Polygon:
         return self.transformed_vertices_3d
 
     def auto_rotation(self):
-        self.vertices = self.vertices @ MatrixOperations.translate([0.0001, 0.0001, 0.0001])
+        x, y, z = [0.0001, 0.0001, 0.0001]
+        self.vertices = self.vertices @ MatrixOperations.translate(x, y, z)
         self.vertices = self.vertices @ MatrixOperations.rotate_yaw(self.speed)
         self.vertices = self.vertices @ MatrixOperations.rotate_roll(self.speed)
         self.vertices = self.vertices @ MatrixOperations.rotate_pitch(self.speed)

@@ -22,7 +22,8 @@ class Camera:
     def on_init_matrix(self):
 
         # CAMERA MATRIX
-        self.camera_matrix = MatrixOperations.translate(self.position[:3])
+        x, y, z = self.position[:3]
+        self.camera_matrix = MatrixOperations.translate(x, y, z)
         
         # self.camera_matrix = (
         #     MatrixOperations.rotate_yaw(math.radians(0))

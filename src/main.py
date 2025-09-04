@@ -18,11 +18,11 @@ class App:
         self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
 
         # wired
-        # self.render: Render = Render(width=width, height=height)
+        self.render: Render = Render(width=width, height=height)
 
         # textured
-        texture = pg.image.load('./assets/textures/white.png').convert()
-        self.render: Render = Render(width=width, height=height, texture=texture)
+        # texture = pg.image.load('./assets/textures/white.png').convert()
+        # self.render: Render = Render(width=width, height=height, texture=texture)
 
     def update(self):
 
