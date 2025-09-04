@@ -125,12 +125,10 @@ class Camera:
 
 class Polygon:
 
-    def __init__(self, faces, vertices, uvs=None, uv_faces=None, speed=0.01):
-        self.faces = faces
-        self.vertices = vertices
-        self.uvs = uvs or []
-        self.uv_faces = uv_faces or []
-        self.speed = speed
+    def __init__(self, faces:list[list[int]]=[], vertices:list[list[float]]=[], speed:float=0.01):
+        self.faces:    list[list[int  ]] = faces
+        self.vertices: list[list[float]] = vertices
+        self.speed: float = speed
 
     def process(self, camera: Camera) -> 'Polygon':
 
@@ -193,27 +191,16 @@ class FileManager:
 
     def __init__(self, filepath):
         self.filepath = filepath
-        self.faces: list[list[int]] = []
+        self.faces:    list[list[int]]   = []
         self.vertices: list[list[float]] = []
-        self.uvs: list[list[float]] = []
-        self.uv_faces: list[list[int]] = []
 
     def load(self) -> 'FileManager':
         with open(self.filepath) as f:
             for line in f:
-                if line.startswith('v '):
+                if line.startswith('v '):  # Parse vertices
                     self.vertices.append([float(i) for i in line.split()[1:]] + [1])
-                elif line.startswith('vt '):
-                    self.uvs.append([float(i) for i in line.split()[1:]])
-                elif line.startswith('f '):
-                    v_idx = []
-                    vt_idx = []
-                    for token in line.strip().split()[1:]:
-                        parts = token.split('/')
-                        v_idx.append(int(parts[0]) - 1)
-                        vt_idx.append(int(parts[1]) - 1)
-                    self.faces.append(v_idx)
-                    self.uv_faces.append(vt_idx)
+                elif line.startswith('f'): # Parse faces
+                    self.faces.append([int(f.split('/')[0]) - 1 for f in line.split()[1:]])
         return self
 
     def get_faces(self) -> list[list[int]]:
@@ -226,66 +213,66 @@ class FileManager:
         return { 'faces': self.faces, 'vertices': self.vertices }
     
     def get_polygon(self) -> Polygon:
-        return Polygon(self.faces, self.vertices, self.uvs, self.uv_faces)
+        return Polygon(self.faces, self.vertices)
 
 class Render:
 
-    def __init__(self, width=1600, height=900):
-        self.width = width
-        self.height = height
+    def __init__(self, width:int=1600, height:int=900):
+        self.width=width
+        self.height=height
 
-    def textured_triangle(self, screen, pts, tex_coords, texture):
-
-        # Bounding box
-        xmin = max(min(p[0] for p in pts), 0)
-        xmax = min(max(p[0] for p in pts), self.width - 1)
-        ymin = max(min(p[1] for p in pts), 0)
-        ymax = min(max(p[1] for p in pts), self.height - 1)
-
-        def edge_func(a, b, c):
-            return (c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])
-
-        area = edge_func(pts[0], pts[1], pts[2])
-        if area == 0: return
-
-        texture_width, texture_height = texture.get_size()
-
-        for y in range(int(ymin), int(ymax) + 1):
-            for x in range(int(xmin), int(xmax) + 1):
-
-                p = (x + 0.5, y + 0.5)
-                w0 = edge_func(pts[1], pts[2], p)
-                w1 = edge_func(pts[2], pts[0], p)
-                w2 = edge_func(pts[0], pts[1], p)
-
-                if w0 >= 0 and w1 >= 0 and w2 >= 0:
-
-                    w0 /= area; w1 /= area; w2 /= area
-
-                    u = w0 * tex_coords[0][0] + w1 * tex_coords[1][0] + w2 * tex_coords[2][0]
-                    v = w0 * tex_coords[0][1] + w1 * tex_coords[1][1] + w2 * tex_coords[2][1]
-
-                    tex_x = int(u * texture_width)
-                    tex_y = int((1 - v) * texture_height)
-
-                    color = texture.get_at((tex_x, tex_y))
-
-                    screen.set_at((x, y), color)
-
-    def polygon_to_screen(self, screen, polygon: Polygon, texture: pg.Surface = None):
+    def polygon_to_screen(self, screen, polygon:Polygon):
 
         if polygon is None: raise ValueError("Polygon cannot be None")
 
-        faces = polygon.faces.copy()
-        uvs = polygon.uvs.copy()
-        uv_faces = polygon.uv_faces.copy()
-        tvs2d = polygon.transformed_vertices_2d.copy()
+        faces, tvs2d = polygon.faces, polygon.transformed_vertices_2d
 
-        for i, face in enumerate(faces):
-            pts = np.array([tvs2d[idx] for idx in face])
-            if not MatrixOperations.is_out_of_bounds(pts, self.width, self.height):
-                if texture and polygon.uvs and polygon.uv_faces:
-                    tex_coords = [uvs[uv_faces[i][j]] for j in range(len(face))]
-                    self.textured_triangle(screen, pts, tex_coords, texture)
-                else:
-                    pg.draw.polygon(screen, pg.Color('orange'), pts, 1)
+        for face in faces:
+            polygon = np.array([tvs2d[i] for i in face])
+            if not MatrixOperations.is_out_of_bounds(polygon, self.width, self.height):
+                pg.draw.polygon(screen, pg.Color('orange'), polygon, 1)
+
+class App:
+
+    def __init__(self, polygon:Polygon, fps:int=30, width:int=1600, height:int=900):
+
+        pg.init()
+        self.fps = fps
+        self.clock = pg.time.Clock()
+        self.screen = pg.display.set_mode((width, height))
+
+        self.polygon: Polygon = polygon
+        self.polygon.vertices = self.polygon.vertices @ MatrixOperations.scale(0.25)
+
+        self.render: Render = Render(width=width, height=height)
+        self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
+
+    def update(self):
+
+        # INPUT HANDLER
+        for event in pg.event.get(): 
+            if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE): pg.quit(); exit()
+
+        # camera: Camera = Camera(position=np.array([0, 0, -5, 1]))
+
+        self.polygon.update()
+        self.polygon.process(self.camera)
+        
+
+    def draw(self):
+        self.screen.fill( pg.Color('darkslategray') )
+        self.render.polygon_to_screen(self.screen, self.polygon)
+        # Update the display and maintain frame rate
+        pg.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
+        pg.display.flip()
+        self.clock.tick(self.fps)
+
+    def run(self):
+        while True:
+            self.update()
+            self.draw()
+
+# Entry point
+if __name__ == '__main__':
+    polygon: Polygon = FileManager('./models/suzanne/model.obj').load().get_polygon()
+    App(polygon=polygon).run()
