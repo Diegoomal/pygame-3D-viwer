@@ -1,9 +1,9 @@
 # Import required libraries
-import numpy as np      # type: ignore
-import pygame as pg     # type: ignore
-import pygame.gfxdraw as gfx # type: ignore
-
+import numpy as np                                                              # type: ignore
+import pygame as pg                                                             # type: ignore
+import pygame.gfxdraw as gfx                                                    # type: ignore
 from polygon import *
+
 
 class Render:
 

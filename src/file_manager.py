@@ -1,6 +1,7 @@
 # Import required libraries
 from polygon import *
 
+
 class FileManager:
 
     def __init__(self, filepath):

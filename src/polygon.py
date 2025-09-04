@@ -1,8 +1,9 @@
 # Import required libraries
-import numpy as np      # type: ignore
-import pygame as pg     # type: ignore
+import numpy as np                                                              # type: ignore
+import pygame as pg                                                             # type: ignore
 from camera import *
 from matrix_operations import *
+
 
 class Polygon:
 
