@@ -48,10 +48,10 @@ class Camera:
         m32 = -2 * near * far / (far - near)
 
         self.projection_matrix = np.array([
-            [m00,   0,   0,  0],
-            [  0, m11,   0,  0],
-            [  0,   0, m22, -1],
-            [  0,   0, m32,  0],
+            [ m00,   0,   0,  0 ],
+            [   0, m11,   0,  0 ],
+            [   0,   0, m22, -1 ],
+            [   0,   0, m32,  0 ],
         ])
 
     def get_camera_matrix(self):

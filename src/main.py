@@ -18,7 +18,7 @@ class App:
         self.camera: Camera = Camera(
             width=width, 
             height=height, 
-            position=np.array([0, 0, -5, 1])
+            position=np.array([0, 0, -9, 1])
         )
 
         # wired
@@ -53,6 +53,7 @@ class App:
 # Entry point
 if __name__ == '__main__':
     
-    polygon: Polygon = FileManager('./assets/models/suzanne/model.obj').load().get_polygon()
+    polygon: Polygon = FileManager('./assets/models/box/model.obj').load().get_polygon()
+    # polygon: Polygon = FileManager('./assets/models/suzanne/model.obj').load().get_polygon()
     
     App(polygon=polygon).run()
