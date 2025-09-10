@@ -1,4 +1,3 @@
-# Import required libraries
 import math
 import numpy as np                                                              # type: ignore
 from numba import njit                                                          # type: ignore

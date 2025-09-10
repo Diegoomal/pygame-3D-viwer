@@ -1,4 +1,3 @@
-# Import required libraries
 from polygon import *
 
 

@@ -1,4 +1,3 @@
-# Import required libraries
 from file_manager import *
 from camera import *
 from polygon import *

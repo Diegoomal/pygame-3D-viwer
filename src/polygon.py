@@ -1,4 +1,3 @@
-# Import required libraries
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
 from camera import *

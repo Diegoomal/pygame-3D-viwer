@@ -1,8 +1,8 @@
-# Pygame 3D ViEngine
+# Pygame 3D Engine
 
 ## Description  
 
-Pygame 3D ViEngine is a Python application developed for simple and efficient 3D model visualization without the need for complex libraries such as OpenGL or GLM. The project uses the Pygame library to render 3D shapes and simulate visual perspectives, making it a lightweight and accessible solution for graphic prototyping and experimentation with 3D computer graphics concepts.  
+Pygame 3D Engine is a Python application developed for simple and efficient 3D model visualization without the need for complex libraries such as OpenGL or GLM. The project uses the Pygame library to render 3D shapes and simulate visual perspectives, making it a lightweight and accessible solution for graphic prototyping and experimentation with 3D computer graphics concepts.  
 
 This project is ideal for developers who want to explore 3D object visualization in a didactic and customizable way.  
 
