@@ -15,13 +15,17 @@ class App:
         self.screen = pg.display.set_mode((width, height))
 
         self.polygon: Polygon = polygon
-        self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -5, 1]))
+        self.camera: Camera = Camera(
+            width=width, 
+            height=height, 
+            position=np.array([0, 0, -5, 1])
+        )
 
         # wired
         self.render: Render = Render(width=width, height=height)
 
         # textured
-        # texture = pg.image.load('./assets/textures/white.png').convert()
+        # texture = pg.image.load('./assets/textures/gold.png').convert()
         # self.render: Render = Render(width=width, height=height, texture=texture)
 
     def update(self):
@@ -30,10 +34,8 @@ class App:
         for event in pg.event.get(): 
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE): pg.quit(); exit()
 
-        camera: Camera = Camera(position=np.array([0, 0, -5, 1]))
-
         self.polygon.update()
-        self.polygon.process(camera)
+        self.polygon.process(self.camera)
     
     def draw(self):
         self.screen.fill( pg.Color('darkslategray') )

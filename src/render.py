@@ -13,8 +13,8 @@ class Render:
         self.texture = texture
 
     def polygon_to_screen(self, screen, polygon:Polygon):
-        if polygon is None:
-            raise ValueError("Polygon cannot be None")
+
+        if polygon is None: raise ValueError("Polygon cannot be None")
 
         faces, tvs2d = polygon.faces, polygon.transformed_vertices_2d
 
