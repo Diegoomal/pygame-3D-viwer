@@ -28,12 +28,12 @@ class App:
         # texture = pg.image.load('./assets/textures/gold.png').convert()
         # self.render: Render = Render(width=width, height=height, texture=texture)
 
-    def update(self):
-
-        # INPUT HANDLER
+    def input_handler(self):
         for event in pg.event.get(): 
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE): pg.quit(); exit()
 
+    def update(self):
+        self.input_handler()
         self.polygon.update()
         self.polygon.process(self.camera)
     
