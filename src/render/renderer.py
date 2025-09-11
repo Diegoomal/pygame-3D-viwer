@@ -1,7 +1,7 @@
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
 import pygame.gfxdraw as gfx                                                    # type: ignore
-from polygon import *
+from core.polygon import *
 
 
 class Render:
@@ -11,7 +11,7 @@ class Render:
         self.height = height
         self.texture = texture
 
-    def polygon_to_screen(self, screen, polygon:Polygon):
+    def render(self, screen, polygon:Polygon):
 
         if polygon is None: raise ValueError("Polygon cannot be None")
 

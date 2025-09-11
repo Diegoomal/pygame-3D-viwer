@@ -1,4 +1,4 @@
-from polygon import *
+from core.polygon import *
 
 
 class FileManager:

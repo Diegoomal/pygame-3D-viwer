@@ -1,6 +1,6 @@
 import math
 import numpy as np                                                              # type: ignore
-from matrix_operations import *
+from core.matrix_operations import *
 
 
 class Camera:
@@ -54,7 +54,7 @@ class Camera:
         ])
 
     def get_camera_matrix(self):
-        return self. camera_matrix
+        return self.camera_matrix
     
     def get_screen_matrix(self):
         return self.screen_matrix

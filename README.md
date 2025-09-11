@@ -41,3 +41,11 @@ This project is ideal for developers who want to explore 3D object visualization
 ## Links
 
 [github_author](https://github.com/Diegoomal)
+
+
+file_manager.py
+matrix_operations.py
+camera.py
+polygon.py
+renderer.py
+main.py

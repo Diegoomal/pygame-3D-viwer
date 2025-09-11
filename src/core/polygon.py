@@ -1,7 +1,7 @@
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
-from camera import *
-from matrix_operations import *
+from core.camera import *
+from core.matrix_operations import *
 
 
 class Polygon:

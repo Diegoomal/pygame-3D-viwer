@@ -1,7 +1,7 @@
-from file_manager import *
-from camera import *
-from polygon import *
-from render import *
+from io_utils.file_manager import *
+from core.camera import *
+from core.polygon import *
+from render.renderer import *
 
 
 class App:
@@ -38,7 +38,7 @@ class App:
     
     def draw(self):
         self.screen.fill( pg.Color('darkslategray') )
-        self.render.polygon_to_screen(self.screen, self.polygon)
+        self.render.render(self.screen, self.polygon)
         # Update the display and maintain frame rate
         pg.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
         pg.display.flip()
