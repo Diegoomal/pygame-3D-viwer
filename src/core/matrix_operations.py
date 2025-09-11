@@ -17,6 +17,9 @@ class MatrixOperations:
     @staticmethod
     @njit(fastmath=True)
     def translate(x, y, z):
+        """
+        Gera uma matriz de translação 4x4 que desloca pontos/objetos 3D pelas coordenadas (x, y, z).
+        """
         return np.array([
             [ 1.0, 0.0, 0.0, 0.0 ],
             [ 0.0, 1.0, 0.0, 0.0 ],
