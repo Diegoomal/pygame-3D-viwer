@@ -4,14 +4,15 @@ import pygame.gfxdraw as gfx                                                    
 from core.polygon import *
 
 
-class Render:
+class Renderer:
 
-    def __init__(self, width:int=1600, height:int=900, texture:pg.Surface|None=None):
+    def __init__(self, screen, width:int=1600, height:int=900, texture:pg.Surface|None=None):
+        self.screen = screen
         self.width = width
         self.height = height
         self.texture = texture
 
-    def render(self, screen, polygon:Polygon):
+    def render(self, polygon:Polygon):
 
         if polygon is None: raise ValueError("Polygon cannot be None")
 
@@ -22,10 +23,10 @@ class Render:
             if not MatrixOperations.is_out_of_bounds(pts, self.width, self.height):
                 if self.texture is None:
                     # wireframe
-                    pg.draw.polygon(screen, pg.Color('orange'), pts, 1)
+                    pg.draw.polygon(self.screen, pg.Color('orange'), pts, 1)
                 else:
                     # textured (sem UV → só mapeia textura inteira no polígono)
-                    gfx.textured_polygon(screen, pts.astype(int), self.texture, 0, 0)
+                    gfx.textured_polygon(self.screen, pts.astype(int), self.texture, 0, 0)
 
     # SIMPLE SHADER APPLYED
     # def polygon_to_screen(self, screen, polygon:Polygon):

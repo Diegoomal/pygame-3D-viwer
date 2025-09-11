@@ -14,14 +14,10 @@ class App:
         self.screen = pg.display.set_mode((width, height))
 
         self.polygon: Polygon = polygon
-        self.camera: Camera = Camera(
-            width=width, 
-            height=height, 
-            position=np.array([0, 0, -9, 1])
-        )
+        self.camera: Camera = Camera(width=width, height=height, position=np.array([0, 0, -9, 1]))
 
         # wired
-        self.render: Render = Render(width=width, height=height)
+        self.renderer: Renderer = Renderer(screen=self.screen, width=width, height=height)
 
         # textured
         # texture = pg.image.load('./assets/textures/gold.png').convert()
@@ -38,7 +34,7 @@ class App:
     
     def draw(self):
         self.screen.fill( pg.Color('darkslategray') )
-        self.render.render(self.screen, self.polygon)
+        self.renderer.render(self.polygon)
         # Update the display and maintain frame rate
         pg.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
         pg.display.flip()
