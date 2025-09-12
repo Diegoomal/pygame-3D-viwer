@@ -7,7 +7,8 @@ from core.matrix_operations import MatrixOperations
 
 class Mesh:
 
-    def __init__(self, faces:list[list[int]], vertices:list[list[float]], position=[0,0,0,1]):
+    #                   faces:list[list[int]], vertices:list[list[float]]
+    def __init__(self, faces:np.ndarray, vertices:np.ndarray, position=[0,0,0,1]):
         self.faces = np.array(faces, dtype=object)                              # int -> object
         self.vertices = np.array(vertices, dtype=float)
         self.model_matrix = MatrixOperations.translate(*position[:3])
@@ -89,14 +90,25 @@ class LambertShader:
     def __init__(self, light_dir=np.array([0, 0, -1])):
         self.light_dir = light_dir / np.linalg.norm(light_dir)
 
-    def shade(self, verts3d, face):
-        pts3d = np.array([verts3d[i][:3] for i in face])
-        v1, v2 = pts3d[1] - pts3d[0], pts3d[2] - pts3d[0]
+    def shade(self, face, vertex_3d):
+        
+        vertex_3d = vertex_3d[:, :3]                                            # x,y,z,w -> drop w component
+
+        vertex_3d_pts = np.array([vertex_3d[i] for i in face])
+        
+        v1 = vertex_3d_pts[1] - vertex_3d_pts[0]
+        v2 = vertex_3d_pts[2] - vertex_3d_pts[0]
+        
         normal = np.cross(v1, v2)
         normal /= np.linalg.norm(normal)
+        
         intensity = max(0, np.dot(normal, self.light_dir))
+        
         val = int(255 * intensity)
-        return (val, val, 0)
+
+        color = (val, val, 0)                                                   # R, G, B
+
+        return color
 
 class Renderer:
 
@@ -107,44 +119,48 @@ class Renderer:
         self.texture = texture
         self.shader = shader
 
-    def render(self, mesh, camera, render_type='wireframe'):
+    def _calculate_projection(self, camera, vertex):
 
-        verts3d = mesh.get_transformed().copy()
+        vertex_3d = vertex.copy()
 
-        verts = mesh.get_transformed().copy() @ camera.get_view_matrix() @ camera.get_projection_matrix()
-        verts /= verts[:, -1].reshape(-1, 1)
-        verts = verts @ camera.get_screen_matrix()
-        verts2d = verts[:, :2]
+        _vertex = vertex_3d @ camera.get_view_matrix() @ camera.get_projection_matrix()
+        _vertex /= _vertex[:, -1].reshape(-1, 1)
+        _vertex = _vertex @ camera.get_screen_matrix()
+        
+        vertex_2d = _vertex[:, :2].copy()
 
-        visible_faces = []
+        # print(
+        #     "len(vertex):", len(vertex_2d), 
+        #     "vertex_2d (x,y):", vertex_2d[0],
+        #     "vertex_3d (x,y,z,w):", vertex_3d[0]
+        # )
+
+        return vertex_2d, vertex_3d
+
+    def render(self, camera, mesh, render_type='wireframe'):
+
+        vertex_2d, vertex_3d = self._calculate_projection(camera, mesh.get_transformed())
+
         for face in mesh.faces:
-            pts3d = np.array([verts3d[i][:3] for i in face])
-            v1, v2 = pts3d[1]-pts3d[0], pts3d[2]-pts3d[0]
-            normal = np.cross(v1, v2)
-            normal /= np.linalg.norm(normal)
-            view_dir = -pts3d[0]  # câmera no (0,0,0)
-            if np.dot(normal, view_dir) <= 0:  continue  # face não visível
-            visible_faces.append(face)
 
-        for face in visible_faces:
-
-            pts = np.array([verts2d[i] for i in face])
+            # recupera os pontos (x,y) da face atual
+            vertex_2d_pts = np.array([vertex_2d[i] for i in face])
             
             # verifica se o vertice está fora da tela
-            if MatrixOperations.is_out_of_bounds(pts, self.width, self.height): continue
+            if MatrixOperations.is_out_of_bounds(vertex_2d_pts, self.width, self.height): continue
             
             if render_type == 'wireframe':
-                pg.draw.polygon(self.screen, pg.Color('orange'), pts, 1)
+                pg.draw.polygon(self.screen, pg.Color('orange'), vertex_2d_pts, 1)
             
             elif render_type == 'solid':
-                pg.draw.polygon(self.screen, pg.Color('orange'), pts, 0)
+                pg.draw.polygon(self.screen, pg.Color('orange'), vertex_2d_pts, 0)
 
             elif render_type == 'solid|shader':
-                color = self.shader.shade(verts3d, face) if self.shader else pg.Color('orange')
-                pg.draw.polygon(self.screen, color, pts, 0)
-            
+                color = self.shader.shade(face, vertex_3d)
+                pg.draw.polygon(self.screen, color, vertex_2d_pts, 0)
+
             elif render_type == 'textured' and self.texture is not None:
-                gfx.textured_polygon(self.screen, pts.astype(int), self.texture, 0, 0)
+                gfx.textured_polygon(self.screen, vertex_2d_pts, self.texture, 0, 0)
 
 class App:
 
@@ -175,7 +191,7 @@ class App:
             for mesh in self.scene:
                 # mesh.apply_transform(np.eye(4))                               # placeholder
                 mesh.apply_transform(rot_y @ rot_x @ rot_z)                     # auto-rotation
-                self.renderer.render(mesh, self.camera, render_type='solid|shader')    # 'wireframe', 'solid', 'solid|shader', 'textured'
+                self.renderer.render(self.camera, mesh, render_type='solid|shader') # 'wireframe', 'solid', 'solid|shader', 'textured'
             
             pg.display.flip()
             self.clock.tick(self.fps)
@@ -183,7 +199,10 @@ class App:
 
 if __name__=='__main__':
 
-    faces, verts = FileManager('./assets/models/box/model.obj').load()
+    file_path = './assets/models/box/model.obj'
+    file_path = './assets/models/suzanne/model.obj'
+
+    faces, verts = FileManager(file_path).load()
 
     #                                      x     y     z     w
     # mesh0 = Mesh(faces, verts, position=[  0.0, -1.5, -5.0,  1.0 ])
