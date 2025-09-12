@@ -140,7 +140,13 @@ class Renderer:
 
         vertex_2d, vertex_3d = self._calculate_projection(camera, mesh.get_transformed())
 
-        for face in mesh.faces:
+        sorted_faces = sorted(
+            mesh.faces,
+            key=lambda f: np.mean([vertex_3d[i][2] for i in f]),
+            reverse=False
+        )
+
+        for face in sorted_faces:
 
             # recupera os pontos (x,y) da face atual
             vertex_2d_pts = np.array([vertex_2d[i] for i in face])
