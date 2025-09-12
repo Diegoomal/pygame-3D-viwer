@@ -18,7 +18,13 @@ class Mesh:
 
     def get_transformed(self) -> np.ndarray:
         return self.vertices @ self.model_matrix
-    
+
+    def auto_rotate(self, angle):
+        rot_x = MatrixOperations.rotate_pitch(angle)
+        rot_y = MatrixOperations.rotate_yaw(angle)
+        rot_z = MatrixOperations.rotate_roll(angle)
+        self.apply_transform(rot_y @ rot_x @ rot_z)
+
 class Scene:
 
     def __init__(self):
@@ -177,11 +183,6 @@ class App:
 
     def run(self):
 
-        angle = 0.01
-        rot_x = MatrixOperations.rotate_pitch(angle)
-        rot_y = MatrixOperations.rotate_yaw(angle)
-        rot_z = MatrixOperations.rotate_roll(angle)
-
         while True:
 
             for e in pg.event.get():
@@ -191,7 +192,7 @@ class App:
             
             for mesh in self.scene:
                 # mesh.apply_transform(np.eye(4))                               # placeholder
-                mesh.apply_transform(rot_y @ rot_x @ rot_z)                     # auto-rotation
+                mesh.auto_rotate(0.01)
                 self.renderer.render(self.camera, mesh, render_type='solid|shader') # 'wireframe', 'solid', 'solid|shader', 'textured'
             
             pg.display.flip()
