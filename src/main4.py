@@ -8,10 +8,11 @@ from core.matrix_operations import MatrixOperations
 class Mesh:
 
     #                   faces:list[list[int]], vertices:list[list[float]]
-    def __init__(self, faces:np.ndarray, vertices:np.ndarray, position=[0,0,0,1]):
+    def __init__(self, faces:np.ndarray, vertices:np.ndarray, position=[0,0,0,1], texture=None):
         self.faces = np.array(faces, dtype=object)                              # int -> object
         self.vertices = np.array(vertices, dtype=float)
         self.model_matrix = MatrixOperations.translate(*position[:3])
+        self.texture = texture
 
     def apply_transform(self, matrix:np.ndarray):
         self.model_matrix = self.model_matrix @ matrix
@@ -106,17 +107,16 @@ class LambertShader:
         
         val = int(255 * intensity)
 
-        color = (val, val, 0)                                                   # R, G, B
+        color = (val, val, val)                                                   # R, G, B
 
         return color
 
 class Renderer:
 
-    def __init__(self, screen, width, height, texture=None, shader=None):
+    def __init__(self, screen, width, height, shader=None):
         self.screen = screen
         self.width = width
         self.height = height
-        self.texture = texture
         self.shader = shader
 
     def _calculate_projection(self, camera, vertex):
@@ -159,20 +159,16 @@ class Renderer:
                 color = self.shader.shade(face, vertex_3d)
                 pg.draw.polygon(self.screen, color, vertex_2d_pts, 0)
 
-            elif render_type == 'textured' and self.texture is not None:
-                gfx.textured_polygon(self.screen, vertex_2d_pts, self.texture, 0, 0)
+            elif render_type == 'textured' and mesh.texture is not None:
+                gfx.textured_polygon(self.screen, vertex_2d_pts, mesh.texture, 0, 0)
 
 class App:
 
-    def __init__(self, scene, fps=30, width=1600, height=900):
-        pg.init()
-        self.fps = fps
-        self.scene = scene
-        self.clock = pg.time.Clock()
-        self.screen = pg.display.set_mode((width,height))
-        self.camera = Camera(width, height, position=np.array([0, 0, -9, 1]))
-        texture = pg.image.load('./assets/textures/gold.png').convert()
-        self.renderer = Renderer(self.screen, width, height, texture=texture, shader=LambertShader())
+    def __init__(self, scene, fps=30, width=1600, height=900, clock=None, screen=None):
+
+        self.fps, self.scene, self.clock, self.screen = fps, scene, clock, screen
+        self.camera = Camera(width, height, position=np.array([0, 0, -9, 1]))        
+        self.renderer = Renderer(self.screen, width, height, shader=LambertShader())
 
     def run(self):
 
@@ -199,12 +195,15 @@ class App:
 
 if __name__=='__main__':
 
+    pg.init()
+    clock = pg.time.Clock()
+    screen = pg.display.set_mode((1600, 900))
+    
     file_path = './assets/models/box/model.obj'
-    file_path = './assets/models/suzanne/model.obj'
-
+    # file_path = './assets/models/suzanne/model.obj'
     faces, verts = FileManager(file_path).load()
 
-    #                                      x     y     z     w
+    #                                        x     y     z     w
     # mesh0 = Mesh(faces, verts, position=[  0.0, -1.5, -5.0,  1.0 ])
     # mesh1 = Mesh(faces, verts, position=[  0.0,  1.5, -5.0,  1.0 ])
 
@@ -213,6 +212,11 @@ if __name__=='__main__':
     # scene.add(mesh1)
 
     scene = Scene()
-    scene.add(Mesh(faces, verts, position=[ 0.0, 0.0, 0.0, 1.0 ]))
+    scene.add(
+        Mesh(
+            faces, verts, position=[ 0.0, 0.0, 0.0, 1.0 ],
+            texture=pg.image.load('./assets/textures/gold.png').convert()
+        )
+    )
     
-    App(scene).run()
+    App(scene, clock=clock, screen=screen).run()
