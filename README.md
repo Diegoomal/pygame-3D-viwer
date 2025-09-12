@@ -1,6 +1,6 @@
 # Pygame 3D Engine
 
-## Description  
+## Description
 
 Pygame 3D Engine is a Python application developed for simple and efficient 3D model visualization without the need for complex libraries such as OpenGL or GLM. The project uses the Pygame library to render 3D shapes and simulate visual perspectives, making it a lightweight and accessible solution for graphic prototyping and experimentation with 3D computer graphics concepts.  
 
@@ -49,3 +49,7 @@ camera.py
 polygon.py
 renderer.py
 main.py
+
+https://pypi.org/project/pygltflib/
+
+https://sketchfab.com/3d-models/desert-city-765ade489c3f4636924307b133994d37#download

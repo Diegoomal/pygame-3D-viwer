@@ -21,7 +21,7 @@ class App:
 
         # textured
         # texture = pg.image.load('./assets/textures/gold.png').convert()
-        # self.render: Render = Render(width=width, height=height, texture=texture)
+        # self.renderer: Renderer = Renderer(width=width, height=height, texture=texture)
 
     def input_handler(self):
         for event in pg.event.get(): 
@@ -44,6 +44,7 @@ class App:
         while True:
             self.update()
             self.draw()
+
 
 # Entry point
 if __name__ == '__main__':
