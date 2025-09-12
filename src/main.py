@@ -209,14 +209,6 @@ if __name__=='__main__':
     # file_path = './assets/models/suzanne/model.obj'
     faces, verts = FileManager(file_path).load()
 
-    #                                        x     y     z     w
-    # mesh0 = Mesh(faces, verts, position=[  0.0, -1.5, -5.0,  1.0 ])
-    # mesh1 = Mesh(faces, verts, position=[  0.0,  1.5, -5.0,  1.0 ])
-
-    # scene = Scene()
-    # scene.add(mesh0)
-    # scene.add(mesh1)
-
     scene = Scene()
     scene.add(
         Mesh(
