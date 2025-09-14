@@ -1,7 +1,7 @@
 import math
-import numpy as np                      # type: ignore
-import pygame as pg                     # type: ignore
-import pygame.gfxdraw as gfx            # type: ignore
+import numpy as np                                                              # type: ignore
+import pygame as pg                                                             # type: ignore
+import pygame.gfxdraw as gfx                                                    # type: ignore
 from matrix_operations import MatrixOperations
 
 
@@ -188,11 +188,7 @@ class Renderer:
 
         vertex_2d, vertex_3d = self._calculate_projection(camera, mesh.get_transformed())
 
-        sorted_faces = sorted(
-            mesh.faces,
-            key=lambda f: np.mean([vertex_3d[i][2] for i in f]),
-            reverse=False
-        )
+        sorted_faces = sorted(mesh.faces, key=lambda f: np.mean([vertex_3d[i][2] for i in f]), reverse=False)
 
         for face in sorted_faces:
 
