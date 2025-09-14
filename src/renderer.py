@@ -82,7 +82,7 @@ class Renderer:
 
             # recupera os pontos (x,y) da face atual
             vertex_2d_pts = np.array([vertex_2d[i] for i in face])
-            
+
             # verifica se o vertice está fora da tela
             if MatrixOperations.is_out_of_bounds(vertex_2d_pts, self.width, self.height): continue
             
