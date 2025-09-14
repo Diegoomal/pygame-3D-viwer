@@ -118,10 +118,11 @@ class LambertShader:
 
 class Renderer:
 
-    def __init__(self, screen, width, height, shader=None):
+    def __init__(self, screen, width, height, render_type='wireframe', shader=None):
         self.screen = screen
         self.width = width
         self.height = height
+        self.render_type = render_type
         self.shader = shader
 
     def _calculate_projection(self, camera, vertex):
@@ -174,7 +175,7 @@ class Renderer:
         del surf_array
         del tex_pixels
 
-    def render(self, camera, mesh, render_type='wireframe'):
+    def render(self, camera, mesh):
 
         vertex_2d, vertex_3d = self._calculate_projection(camera, mesh.get_transformed())
 
@@ -192,20 +193,20 @@ class Renderer:
             # verifica se o vertice está fora da tela
             if MatrixOperations.is_out_of_bounds(vertex_2d_pts, self.width, self.height): continue
             
-            if render_type == 'wireframe':
+            if self.render_type == 'wireframe':
                 pg.draw.polygon(self.screen, pg.Color('orange'), vertex_2d_pts, 1)
             
-            elif render_type == 'solid':
+            elif self.render_type == 'solid':
                 pg.draw.polygon(self.screen, pg.Color('orange'), vertex_2d_pts, 0)
 
-            elif render_type == 'solid|shader':
+            elif self.render_type == 'solid|shader':
                 color = self.shader.shade(face, vertex_3d)
                 pg.draw.polygon(self.screen, color, vertex_2d_pts, 0)
 
-            elif render_type == 'textured' and mesh.texture is not None:
+            elif self.render_type == 'textured' and mesh.texture is not None:
                 gfx.textured_polygon(self.screen, vertex_2d_pts, mesh.texture, 0, 0)
 
-            elif render_type == 'textured|mapping' and mesh.texture is not None:
+            elif self.render_type == 'textured|mapping' and mesh.texture is not None:
                 # exemplo UV automático por posição 3D (ajuste conforme seu .obj tiver UVs)
                 pts2d = [tuple(vertex_2d[i]) for i in face[:3]]
                 ptsuv = [(vertex_3d[i][0]%1, vertex_3d[i][1]%1) for i in face[:3]]
@@ -217,7 +218,7 @@ class App:
 
         self.fps, self.scene, self.clock, self.screen, self.render_type = fps, scene, clock, screen, render_type
         self.camera = Camera(width, height, position=np.array([0.0, 0.0, -9.0, 1.0]))        
-        self.renderer = Renderer(self.screen, width, height, shader=LambertShader())
+        self.renderer = Renderer(self.screen, width, height, render_type, shader=LambertShader())
 
     def run(self):
 
@@ -231,7 +232,7 @@ class App:
             for mesh in self.scene:
                 # mesh.apply_transform(np.eye(4))                               # placeholder
                 mesh.auto_rotate(0.01)
-                self.renderer.render(self.camera, mesh, render_type=self.render_type) 
+                self.renderer.render(self.camera, mesh) 
             
             pg.display.flip()
             self.clock.tick(self.fps)
@@ -255,4 +256,4 @@ if __name__=='__main__':
     )
     
     # 'wireframe', 'solid', 'solid|shader', 'textured', 'textured|mapping'
-    App(scene, clock=clock, screen=screen, render_type='textured|mapping').run()
+    App(scene, clock=clock, screen=screen, render_type='textured').run()
