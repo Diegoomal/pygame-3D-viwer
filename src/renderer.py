@@ -1,7 +1,8 @@
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
+import pygame.gfxdraw as gfx                                                    # type: ignore
 from matrix_operations import MatrixOperations
-
+from rasterizer import Rasterizer
 
 class Renderer:
 
@@ -100,6 +101,4 @@ class Renderer:
 
             elif self.render_type == 'textured|uv_mapping' and mesh.texture is not None:
                 # exemplo UV automático por posição 3D (ajuste conforme seu .obj tiver UVs)
-                pts2d = [tuple(vertex_2d[i]) for i in face[:3]]
-                ptsuv = [(vertex_3d[i][0]%1, vertex_3d[i][1]%1) for i in face[:3]]
-                self._draw_textured_triangle(self.screen, pts2d, ptsuv, mesh.texture)
+                Rasterizer.draw_textured_triangle(self.screen, vertex_2d, vertex_3d, face, mesh.texture)
