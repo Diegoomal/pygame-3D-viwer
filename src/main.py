@@ -213,9 +213,9 @@ class Renderer:
 
 class App:
 
-    def __init__(self, scene, fps=30, width=1600, height=900, clock=None, screen=None):
+    def __init__(self, scene, fps=30, width=1600, height=900, clock=None, screen=None, render_type='wireframe'):
 
-        self.fps, self.scene, self.clock, self.screen = fps, scene, clock, screen
+        self.fps, self.scene, self.clock, self.screen, self.render_type = fps, scene, clock, screen, render_type
         self.camera = Camera(width, height, position=np.array([0.0, 0.0, -9.0, 1.0]))        
         self.renderer = Renderer(self.screen, width, height, shader=LambertShader())
 
@@ -231,7 +231,7 @@ class App:
             for mesh in self.scene:
                 # mesh.apply_transform(np.eye(4))                               # placeholder
                 mesh.auto_rotate(0.01)
-                self.renderer.render(self.camera, mesh, render_type='textured|mapping') # 'wireframe', 'solid', 'solid|shader', 'textured', textured|mapping
+                self.renderer.render(self.camera, mesh, render_type=self.render_type) 
             
             pg.display.flip()
             self.clock.tick(self.fps)
@@ -240,8 +240,7 @@ class App:
 if __name__=='__main__':
 
     pg.init()
-    clock = pg.time.Clock()
-    screen = pg.display.set_mode((1600, 900))
+    clock, screen = pg.time.Clock(), pg.display.set_mode((1600, 900))
     
     file_path = './assets/models/box/model1.obj'
     # file_path = './assets/models/suzanne/model.obj'
@@ -251,8 +250,9 @@ if __name__=='__main__':
     scene.add(
         Mesh(
             faces, verts, position=[ 0.0, 0.0, 0.0, 1.0 ],
-            texture=pg.image.load('./assets/textures/color-test.png').convert()
+            texture=pg.image.load('./assets/textures/gold.png').convert()
         )
     )
     
-    App(scene, clock=clock, screen=screen).run()
+    # 'wireframe', 'solid', 'solid|shader', 'textured', 'textured|mapping'
+    App(scene, clock=clock, screen=screen, render_type='textured|mapping').run()
