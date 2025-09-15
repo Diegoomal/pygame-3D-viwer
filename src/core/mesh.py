@@ -1,5 +1,5 @@
 import numpy as np                                                              # type: ignore
-from matrix_operations import MatrixOperations
+from core.matrix_operations import MatrixOperations
 
 
 class Mesh:
