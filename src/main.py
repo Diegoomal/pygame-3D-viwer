@@ -1,9 +1,9 @@
 
 import pygame as pg                                                             # type: ignore
 from app import App
-from mesh import Mesh
-from scene import Scene
-from file_manager import FileManager
+from core.mesh import Mesh
+from core.scene import Scene
+from utils.file_manager import FileManager
 
 
 if __name__=='__main__':
@@ -22,4 +22,4 @@ if __name__=='__main__':
     )
     
     # 'wireframe', 'solid', 'solid|shader', 'textured', 'textured|uv_mapping'
-    App(scene, clock=clock, screen=screen, render_type='textured|uv_mapping').run()
+    App(scene, clock=clock, screen=screen, render_type='wireframe').run()

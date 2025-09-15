@@ -1,9 +1,9 @@
 
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
-from camera import Camera
-from renderer import Renderer
-from shader import LambertShader
+from core.camera import Camera
+from render.renderer import Renderer
+from render.shader import LambertShader
 
 
 class App:
