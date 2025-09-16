@@ -29,4 +29,5 @@ class App:
                 self.renderer.render(self.camera, mesh) 
             
             pg.display.flip()
+            pg.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
             self.clock.tick(self.fps)

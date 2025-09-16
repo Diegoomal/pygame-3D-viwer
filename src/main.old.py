@@ -319,4 +319,4 @@ if __name__=='__main__':
     )
     
     # 'wireframe', 'solid', 'solid|shader', 'textured', 'textured|uv_mapping'
-    App(scene, clock=clock, screen=screen, render_type='textured|uv_mapping').run()
+    App(scene, clock=clock, screen=screen, render_type='solid|shader').run()
