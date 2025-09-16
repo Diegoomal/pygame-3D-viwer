@@ -5,12 +5,7 @@ from core.matrix_operations import MatrixOperations
 
 class Camera:
 
-    def __init__(self, 
-                 width, height, 
-                 position=np.array([0,0,-5,1]), 
-                 h_fov=math.pi/3, 
-                 near=0.1, far=100
-                ):
+    def __init__(self, width, height, position=np.array([0,0,-5,1]), h_fov=math.pi/3, near=0.1, far=100):
         self.width, self.height = width, height
         self.position = position
         self.h_fov, self.v_fov = h_fov, h_fov*(height/width)

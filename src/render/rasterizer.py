@@ -21,15 +21,13 @@ class Rasterizer:
         tex_pixels = pg.surfarray.pixels3d(texture)
         surf_array = pg.surfarray.pixels3d(surface)
 
-        min_x = max(int(min(p[0] for p in pts2d)), 0)
-        max_x = min(int(max(p[0] for p in pts2d)), surface.get_width() - 1)
-        min_y = max(int(min(p[1] for p in pts2d)), 0)
-        max_y = min(int(max(p[1] for p in pts2d)), surface.get_height() - 1)
+        min_x, max_x = max(int(min(p[0] for p in pts2d)), 0), min(int(max(p[0] for p in pts2d)), surface.get_width() - 1)
+        min_y, max_y = max(int(min(p[1] for p in pts2d)), 0), min(int(max(p[1] for p in pts2d)), surface.get_height() - 1)
 
         def edge(p1, p2, p): return (p[0] - p1[0]) * (p2[1] - p1[1]) - (p[1] - p1[1]) * (p2[0] - p1[0])
 
         area = edge(pts2d[0], pts2d[1], pts2d[2])
-        if abs(area) < 1e-9: del surf_array; del tex_pixels; return;
+        if abs(area) < 1e-9: del surf_array; del tex_pixels; return
 
         for y in range(min_y, max_y + 1):
             for x in range(min_x, max_x + 1):
