@@ -13,29 +13,37 @@ This project is ideal for developers who want to explore 3D object visualization
 - Interactive control of camera and objects.  
 - Modular structure for easy expansion.  
 
-## simple implementation
+## Conda Snippets
+
+### Create environment
+
+``` conda env create -n viwer-env -f ./env.yml ```
+
+### Update ENV
+
+``` conda env update -n viwer-env -f ./env.yml ```
+
+### Remove environment
+
+``` conda env remove --n viwer-env ```
+
+### Activate environment
+
+``` conda activate viwer-env ```
+
+### Deactivate environment
+
+``` conda deactivate ```
+
+## Notebooks
 
 ``` notebooks/main.ipynb ```
-
-## Create ENV
-
-``` conda env create -n 3d-viwer-env -f ./env.yml ```
-
-## Update ENV
-
-``` conda env update -n 3d-viwer-env -f ./env.yml ```
-
-## Remove ENV
-
-``` conda env remove --n 3d-viwer-env ```
-
-## Activate ENV
-
-``` conda activate 3d-viwer-env ```
 
 ## RUN
 
 ``` python src/main.py ```
+
+``` python src/main.py --width 1600 --height 900 --render_type "wireframe" --model_name "./assets/models/box3.obj" --texture_name "./assets/textures/gold.png" ```
 
 
 ## Links

@@ -406,11 +406,11 @@ import argparse
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--width", type=int, default=800)
-    parser.add_argument("--height", type=int, default=600)
-    parser.add_argument("--render_type", type=str, default='wireframe')
-    parser.add_argument("--model_name", type=str, default='./assets/models/box/model1.obj')
-    parser.add_argument("--texture_name", type=str, default='./assets/textures/gold.png')
+    parser.add_argument("--width",          type=int, default=800)
+    parser.add_argument("--height",         type=int, default=600)
+    parser.add_argument("--render_type",    type=str, default='wireframe')
+    parser.add_argument("--model_name",     type=str, default='./assets/models/box/model1.obj')
+    parser.add_argument("--texture_name",   type=str, default='./assets/textures/gold.png')
     
     args = parser.parse_args()
 
