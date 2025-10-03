@@ -1,8 +1,13 @@
+from abc import ABC, abstractmethod
 import numpy as np                                                              # type: ignore
 from core.matrix_operations import MatrixOperations
 
 
-class Mesh:
+class IMesh:
+    def __init__(self):
+        raise NotImplementedError("IMesh is an interface and cannot be instantiated directly.")
+
+class Mesh(IMesh):
 
     def __init__(self, faces:np.ndarray, vertices:np.ndarray, position=[0,0,0,1], texture=None):
         self.faces = np.array(faces, dtype=object)                              # int -> object

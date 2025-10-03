@@ -53,3 +53,14 @@ main.py
 https://pypi.org/project/pygltflib/
 
 https://sketchfab.com/3d-models/desert-city-765ade489c3f4636924307b133994d37#download
+
+
+
+
+
+References
+https://github.com/alonrubintec/3DViewer
+https://github.com/mikoro/pymazing
+https://github.com/philgras/pyrast
+https://github.com/rougier/tiny-renderer
+https://github.com/schlegelp/octarine
