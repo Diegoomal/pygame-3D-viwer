@@ -369,11 +369,8 @@ class App:
 
         while True:
             
-            for e in pg.event.get():
-                if e.type == pg.QUIT or (e.type == pg.KEYDOWN and e.key == pg.K_ESCAPE):
-                    pg.quit()
-                    exit()
-
+            [pg.quit() for e in pg.event.get() if e.type == pg.QUIT or (e.type==pg.KEYDOWN and e.key==pg.K_ESCAPE)]
+            
             self.screen.fill(pg.Color('darkslategray'))
 
             for mesh in self.scene:
