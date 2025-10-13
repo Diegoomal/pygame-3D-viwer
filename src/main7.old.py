@@ -360,12 +360,18 @@ from array import array
 
 class PostProcess:
     
-    @staticmethod
-    def run():
+    _initialized = False
+    _ctx = None
+    _prog = None
+    _vao = None
+    _tex = None
+    _width = 0
+    _height = 0
 
-         # obtém contexto do OpenGL ativo (criado pelo Pygame)
-        ctx = moderngl.create_context(require=330)
-        width, height = pg.display.get_surface().get_size()
+    @staticmethod
+    def init(width, height):
+        PostProcess._ctx = moderngl.create_context(require=330)
+        PostProcess._width, PostProcess._height = width, height
 
         vert_shader = '''
         #version 330 core
@@ -390,25 +396,41 @@ class PostProcess:
         }
         '''
 
-        # captura o framebuffer atual
-        data = pg.image.tostring(pg.display.get_surface(), "RGBA", True)
-        texture = ctx.texture((width, height), 4, data)
-        texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
-        texture.use()
+        prog = PostProcess._ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
 
-        quad = ctx.buffer(array('f', [
+        quad = PostProcess._ctx.buffer(array('f', [
             -1.0,  1.0, 0.0, 0.0,
             -1.0, -1.0, 0.0, 1.0,
              1.0,  1.0, 1.0, 0.0,
              1.0, -1.0, 1.0, 1.0,
         ]))
+        vao = PostProcess._ctx.vertex_array(prog, [(quad, '2f 2f', 'vert', 'texcoord')])
 
-        prog = ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
-        vao = ctx.vertex_array(prog, [(quad, '2f 2f', 'vert', 'texcoord')])
+        PostProcess._prog = prog
+        PostProcess._vao = vao
+        PostProcess._initialized = True
+
+    @staticmethod
+    def run():
+        if not PostProcess._initialized:
+            surface = pg.display.get_surface()
+            w, h = surface.get_size()
+            PostProcess.init(w, h)
+
+        ctx = PostProcess._ctx
+        surface = pg.display.get_surface()
+        w, h = PostProcess._width, PostProcess._height
+
+        data = pg.image.tostring(surface, "RGBA", True)
+        tex = ctx.texture((w, h), 4, data)
+        tex.filter = (moderngl.NEAREST, moderngl.NEAREST)
+        tex.use()
 
         ctx.screen.use()
-        vao.render(moderngl.TRIANGLE_STRIP)
+        PostProcess._vao.render(moderngl.TRIANGLE_STRIP)
         ctx.finish()
+
+        tex.release()
 
 
 # -------------------------
