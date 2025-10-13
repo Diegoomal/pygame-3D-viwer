@@ -7,6 +7,8 @@ import math
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
 import pygame.gfxdraw as gfx                                                    # type: ignore
+import moderngl                                                                 # type: ignore
+from array import array
 
 # -------------------------
 # Matrix utilities
@@ -352,6 +354,92 @@ class Renderer:
             self.shader.shade(self.screen, v2d, verts_world, face, mesh)     # sombreamento (pós-raster)
     
 # -------------------------
+# Post Process
+# -------------------------
+class PostProcess:
+    
+    @staticmethod
+    def run(surface: pg.Surface):
+        
+        print('[PostProcess][run][start]')
+
+        # exemplo de shader de pós-processamento (grayscale)
+        ctx = moderngl.create_context()
+        
+        # Criar um framebuffer para renderizar o resultado
+        # fbo = ctx.framebuffer( color_attachments=[ctx.texture(surface.get_size(), 4)] )
+        # fbo.use()
+
+        vert_shader = '''
+#version 330 core
+
+in vec2 vert;
+in vec2 texcoord;
+out vec2 uvs;
+
+void main() {
+    uvs = texcoord;
+    gl_Position = vec4(vert, 0.0, 1.0);
+}
+    '''
+
+        frag_shader = '''
+#version 330 core
+
+uniform sampler2D tex;
+
+in vec2 uvs;
+out vec4 f_color;
+
+void main() {
+    vec4 color = texture(tex, uvs);
+    float gray = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
+    f_color = vec4(gray, gray, gray, 1.0);
+}
+'''
+
+        quad_buffer = ctx.buffer(array('f', [
+            # (x, y), (u, v)            => position, texcoord
+            -1.0,  1.0, 0.0, 0.0,       # top-left
+            -1.0, -1.0, 0.0, 1.0,       # bottom-left
+            1.0,  1.0, 1.0, 0.0,       # top-right
+            1.0, -1.0, 1.0, 1.0,       # bottom-right
+        ]))
+
+        program = ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
+        render_object = ctx.vertex_array(program, [(quad_buffer, '2f 2f', 'vert', 'texcoord')])
+
+        # Criar e configurar a textura de entrada
+        input_texture = ctx.texture(surface.get_size(), 4)
+        input_texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
+        input_texture.swizzle = 'BGRA'
+        input_texture.write(surface.get_view('1'))
+        input_texture.use(0)
+        
+        # Limpar o framebuffer
+        ctx.clear()
+        
+        # Renderizar
+        program['tex'] = 0
+        render_object.render(mode=moderngl.TRIANGLE_STRIP)
+        
+        # Ler o resultado do framebuffer
+        # pixels = fbo.read(components=4)
+        
+        # Criar uma nova superfície para o resultado
+        # result = pg.image.frombuffer(pixels, surface.get_size(), 'RGBA')
+        
+        # Copiar o resultado para a superfície original
+        # surface.blit(result, (0, 0))
+        
+        # Limpar
+        # input_texture.release()
+        # fbo.release()
+        # ctx.release()
+
+        print('[PostProcess][run][finish]')
+
+# -------------------------
 # App (engine loop)
 # -------------------------
 class App:
@@ -361,6 +449,8 @@ class App:
         self.scene = scene
         self.clock = clock
         self.screen = screen
+        self.width = width
+        self.height = height
         self.camera = Camera(width, height, position=[0.0, 0.0, -9.0])
         # CHANGED: map render_type para estratégias e passar instâncias corretas para Renderer
         rt = render_type.lower() if isinstance(render_type, str) else render_type
@@ -376,7 +466,7 @@ class App:
             raster = SolidRaster(); shader = NoShade()
         self.renderer = Renderer(self.screen, width, height, raster, shader)
 
-    def run(self):
+    def run(self, args):
 
         while True:
             
@@ -388,6 +478,11 @@ class App:
                 # minimal animation separated from transform internals
                 mesh.transform.rotation[1] += 0.01
                 self.renderer.render_mesh(self.camera, mesh)
+
+                # post-process
+                # if str(args.post_process).lower() in ('true', '1', 'yes'):
+                #     surface = pg.Surface((self.width, self.height))
+                #     PostProcess.run(surface)
 
             pg.display.flip()
             if self.clock:
@@ -407,6 +502,7 @@ def get_arguments():
     parser.add_argument("--render_type",    type=str, default='wireframe')
     parser.add_argument("--model_name",     type=str, default='./assets/models/box/model1.obj')
     parser.add_argument("--texture_name",   type=str, default='./assets/textures/gold.png')
+    parser.add_argument("--post_process",   type=str, default='false')
     return parser.parse_args()
 
 def main():
@@ -415,7 +511,7 @@ def main():
 
     pg.init()
     clock = pg.time.Clock()
-    screen = pg.display.set_mode((args.width, args.height))
+    screen = pg.display.set_mode((args.width, args.height), pg.OPENGL | pg.DOUBLEBUF)
 
     faces, verts, uvs, norms = FileManager(args.model_name).load()
 
@@ -428,12 +524,13 @@ def main():
     scene = Scene()
     scene.add_mesh(Mesh(faces, verts, uvs, norms, transform=Transform(position=[0.0, 0.0, 0.0]), texture=tex))
 
-    App(scene, fps=60, width=args.width, height=args.height, clock=clock, screen=screen, render_type=args.render_type).run()
+    App(scene, fps=60, width=args.width, height=args.height, clock=clock, screen=screen, render_type=args.render_type).run(args)
 
 
 if __name__ == '__main__':
     main()
 
-# python src/main4.old.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj
-# python src/main4.old.py --width 1600 --height 900 --render_type textured --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
-# python src/main4.old.py --width 1600 --height 900 --render_type textured_rasterizer --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
+# python src/main5.old.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj
+# python src/main5.old.py --width 1600 --height 900 --render_type textured --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
+# python src/main5.old.py --width 1600 --height 900 --render_type textured_rasterizer --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
+# python src/main5.old.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj --post_process true

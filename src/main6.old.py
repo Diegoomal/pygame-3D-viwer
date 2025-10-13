@@ -352,6 +352,78 @@ class Renderer:
             self.shader.shade(self.screen, v2d, verts_world, face, mesh)     # sombreamento (pós-raster)
     
 # -------------------------
+# Post Process
+# -------------------------
+
+import moderngl                                                                 # type: ignore
+from array import array
+
+class PostProcess:
+    
+    @staticmethod
+    def run():
+
+        surface = pg.Surface((800, 600))
+
+        ctx = moderngl.create_context()
+
+        vert_shader = '''
+#version 330 core
+
+in vec2 vert;
+in vec2 texcoord;
+out vec2 uvs;
+
+void main() {
+    uvs = texcoord;
+    gl_Position = vec4(vert, 0.0, 1.0);
+}
+    '''
+
+        frag_shader = '''
+#version 330 core
+
+uniform sampler2D tex;
+
+in vec2 uvs;
+out vec4 f_color;
+
+void main() {
+    vec4 color = texture(tex, uvs);
+    float gray = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
+    f_color = vec4(gray, gray, gray, 1.0);
+}
+'''
+
+        quad_buffer = ctx.buffer(array('f', [
+            # (x, y), (u, v)           => position, texcoord
+            -1.0,  1.0, 0.0, 0.0,      # top-left
+            -1.0, -1.0, 0.0, 1.0,      # bottom-left
+            1.0,  1.0, 1.0, 0.0,       # top-right
+            1.0, -1.0, 1.0, 1.0,       # bottom-right
+        ]))
+
+        program = ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
+        render_object = ctx.vertex_array(program, [(quad_buffer, '2f 2f', 'vert', 'texcoord')])
+
+        surface.fill((0, 0, 0))
+        # surface.blit(img, pygame.mouse.get_pos())
+
+        texture = ctx.texture(surface.get_size(), 4)
+        texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
+        texture.swizzle = 'BGRA'
+        texture.write(surface.get_view('1'))
+
+        texture.use(0)
+
+        program['tex'] = 0
+        render_object.render(mode=moderngl.TRIANGLE_STRIP)
+
+        pg.display.flip()
+        texture.release()
+
+
+# -------------------------
 # App (engine loop)
 # -------------------------
 class App:
@@ -376,7 +448,7 @@ class App:
             raster = SolidRaster(); shader = NoShade()
         self.renderer = Renderer(self.screen, width, height, raster, shader)
 
-    def run(self):
+    def run(self, args=None):
 
         while True:
             
@@ -384,10 +456,13 @@ class App:
 
             self.screen.fill(pg.Color('darkslategray'))
 
-            for mesh in self.scene:
-                # minimal animation separated from transform internals
+            for mesh in self.scene:                                             # minimal animation separated from transform internals
                 mesh.transform.rotation[1] += 0.01
                 self.renderer.render_mesh(self.camera, mesh)
+
+            # print('[App][run] post_process:', args.post_process)
+            if str(args.post_process).lower() in ('true', '1', 'yes'):
+                PostProcess.run()
 
             pg.display.flip()
             if self.clock:
@@ -407,6 +482,7 @@ def get_arguments():
     parser.add_argument("--render_type",    type=str, default='wireframe')
     parser.add_argument("--model_name",     type=str, default='./assets/models/box/model1.obj')
     parser.add_argument("--texture_name",   type=str, default='./assets/textures/gold.png')
+    parser.add_argument("--post_process",   type=str, default='false')
     return parser.parse_args()
 
 def main():
@@ -415,7 +491,11 @@ def main():
 
     pg.init()
     clock = pg.time.Clock()
-    screen = pg.display.set_mode((args.width, args.height))
+
+    if str(args.post_process).lower() in ('true', '1', 'yes'):
+        screen = pg.display.set_mode((args.width, args.height), pg.OPENGL | pg.DOUBLEBUF)
+    else:
+        screen = pg.display.set_mode((args.width, args.height))
 
     faces, verts, uvs, norms = FileManager(args.model_name).load()
 
@@ -428,12 +508,16 @@ def main():
     scene = Scene()
     scene.add_mesh(Mesh(faces, verts, uvs, norms, transform=Transform(position=[0.0, 0.0, 0.0]), texture=tex))
 
-    App(scene, fps=60, width=args.width, height=args.height, clock=clock, screen=screen, render_type=args.render_type).run()
+    App(scene, fps=60, width=args.width, height=args.height, clock=clock, screen=screen, render_type=args.render_type).run(args)
 
 
 if __name__ == '__main__':
     main()
 
-# python src/main4.old.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj
-# python src/main4.old.py --width 1600 --height 900 --render_type textured --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
-# python src/main4.old.py --width 1600 --height 900 --render_type textured_rasterizer --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
+# python src/main6.old.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj
+# python src/main6.old.py --width 1600 --height 900 --render_type textured --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
+# python src/main6.old.py --width 1600 --height 900 --render_type textured_rasterizer --model_name ./assets/models/box2.obj --texture_name ./assets/textures/gold.png
+# python src/main6.old.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj --post_process true
+
+
+# python src/main.py --width 1600 --height 900 --render_type wireframe --model_name ./assets/models/box2.obj --post_process true
