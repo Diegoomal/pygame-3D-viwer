@@ -1,4 +1,4 @@
-# Pygame 3D Engine
+# Pygame | 3D Viewer
 
 ## Description
 
@@ -19,7 +19,7 @@ This project is ideal for developers who want to explore 3D object visualization
 
 ``` conda env create -n viwer-env -f ./env.yml ```
 
-### Update ENV
+### Update environment
 
 ``` conda env update -n viwer-env -f ./env.yml ```
 
@@ -53,26 +53,3 @@ This project is ideal for developers who want to explore 3D object visualization
 ## Links
 
 [github_author](https://github.com/Diegoomal)
-
-
-file_manager.py
-matrix_operations.py
-camera.py
-polygon.py
-renderer.py
-main.py
-
-https://pypi.org/project/pygltflib/
-
-https://sketchfab.com/3d-models/desert-city-765ade489c3f4636924307b133994d37#download
-
-
-
-
-
-References
-https://github.com/alonrubintec/3DViewer
-https://github.com/mikoro/pymazing
-https://github.com/philgras/pyrast
-https://github.com/rougier/tiny-renderer
-https://github.com/schlegelp/octarine
