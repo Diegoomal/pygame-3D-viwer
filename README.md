@@ -43,6 +43,8 @@ This project is ideal for developers who want to explore 3D object visualization
 
 ``` python src/main.py ```
 
+``` python src/main.py --render_type "wireframe" --model_name "./assets/models/box3.obj" ```
+
 ``` python src/main.py --width 1600 --height 900 --render_type "wireframe" --model_name "./assets/models/box3.obj" ```
 
 ``` python src/main.py --width 1600 --height 900 --render_type "solid|shader" --model_name "./assets/models/box3.obj" ```

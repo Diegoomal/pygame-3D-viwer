@@ -1,9 +1,15 @@
+#
+# Simple 3D Viewer with Pygame
+# filename: "main.py"
+#
 
-import math, argparse
+import math
+import argparse
+from abc import ABC, abstractmethod
+
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
 import pygame.gfxdraw as gfx                                                    # type: ignore
-from numba import njit                                                          # type: ignore
 
 #
 # Shader
@@ -24,7 +30,10 @@ class LambertShader:
         v2 = vertex_3d_pts[2] - vertex_3d_pts[0]
         
         normal = np.cross(v1, v2)
-        normal /= np.linalg.norm(normal)
+        norm = np.linalg.norm(normal)
+        if norm == 0:
+            return (0, 0, 0)
+        normal /= norm
         
         intensity = max(0, np.dot(normal, self.light_dir))
         
@@ -64,7 +73,9 @@ class Rasterizer:
         def edge(p1, p2, p): return (p[0] - p1[0]) * (p2[1] - p1[1]) - (p[1] - p1[1]) * (p2[0] - p1[0])
 
         area = edge(pts2d[0], pts2d[1], pts2d[2])
-        if abs(area) < 1e-9: del surf_array; del tex_pixels; return
+        if abs(area) < 1e-9:
+            del surf_array; del tex_pixels
+            return
 
         for y in range(min_y, max_y + 1):
             for x in range(min_x, max_x + 1):
@@ -144,7 +155,7 @@ class Renderer:
             elif self.render_type == 'solid':
                 pg.draw.polygon(self.screen, pg.Color('orange'), vertex_2d_pts, 0)
 
-            elif self.render_type == 'solid|shader':
+            elif self.render_type == 'solid|shader' and self.shader is not None:
                 color = self.shader.shade(face, vertex_world)
                 pg.draw.polygon(self.screen, color, vertex_2d_pts, 0)
 
@@ -161,8 +172,8 @@ class Renderer:
 
 class MatrixOperations:
     
+    # --- CHANGED: removed numba decorator to ensure runtime compatibility ---
     @staticmethod
-    @njit(fastmath=True)
     def is_out_of_bounds(arr, width, height):
         return np.any(
             (arr[:, 0] < 0)     | 
@@ -172,7 +183,6 @@ class MatrixOperations:
         )
 
     @staticmethod
-    @njit(fastmath=True)
     def translate(x, y, z):
         """
         Gera uma matriz de translação 4x4 que desloca pontos/objetos 3D pelas coordenadas (x, y, z).
@@ -185,7 +195,6 @@ class MatrixOperations:
         ], dtype=np.float64)
 
     @staticmethod
-    @njit(fastmath=True)
     def scale(n):
         return np.array([
             [   n, 0.0, 0.0, 0.0 ],
@@ -195,7 +204,6 @@ class MatrixOperations:
         ], dtype=np.float64)
    
     @staticmethod
-    @njit(fastmath=True)
     def rotate_pitch(angle):                                                    # X-axis
         s, c = np.sin(angle), np.cos(angle)
         return np.array([
@@ -206,7 +214,6 @@ class MatrixOperations:
         ], dtype=np.float64)
 
     @staticmethod
-    @njit(fastmath=True)
     def rotate_yaw(angle):                                                      # Y-Axis
         s, c = np.sin(angle), np.cos(angle)
         return np.array([
@@ -217,7 +224,6 @@ class MatrixOperations:
         ], dtype=np.float64)
     
     @staticmethod
-    @njit(fastmath=True)
     def rotate_roll(angle):                                                     # Z-Axis
         s, c = np.sin(angle), np.cos(angle)
         return np.array([
@@ -238,6 +244,7 @@ class Camera:
 
     def get_view_matrix(self):
         x, y, z = self.position[:3]
+        # note: we keep the same translate convention used by the renderer
         return MatrixOperations.translate(x, y, z)
 
     def get_projection_matrix(self):
@@ -268,11 +275,21 @@ class Camera:
 
 class Mesh:
 
-    def __init__(self, faces:np.ndarray, vertices:np.ndarray, position=[0,0,0,1], texture=None):
-        self.faces = np.array(faces, dtype=object)                              # int -> object
+    def __init__(self, faces:np.ndarray, vertices:np.ndarray, position=[0,0,0,1], texture_path=None):
+        self.faces = np.array(faces, dtype=object)
         self.vertices = np.array(vertices, dtype=float)
         self.model_matrix = MatrixOperations.translate(*position[:3])
-        self.texture = texture
+        self.texture = None
+        self.texture_path = texture_path
+
+    def load_texture(self):
+        try:
+            if self.texture_path is None:
+                return None
+            self.texture = pg.image.load(self.texture_path).convert_alpha()
+        except Exception:
+            self.texture = None
+            return None
 
     def apply_transform(self, matrix:np.ndarray):
         self.model_matrix = self.model_matrix @ matrix
@@ -289,8 +306,14 @@ class Mesh:
 
 class Scene:
 
-    def __init__(self):
+    def __init__(self, render_type='wireframe'):
         self.meshes = []
+        self.render_type = render_type
+
+    def load_textures(self):
+        for mesh in self.meshes:
+            if mesh.texture_path is not None:
+                mesh.load_texture()
 
     def add(self, mesh):
         self.meshes.append(mesh)
@@ -314,42 +337,92 @@ class FileManager:
         with open(self.filepath) as f:
             for line in f:
                 if line.startswith('v '):
-                    vertices.append([float(i) for i in line.split()[1:]]+[1])
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        vertices.append([float(i) for i in parts[1:4]] + [1.0])
                 elif line.startswith('f'):
-                    faces.append([int(p.split('/')[0])-1 for p in line.split()[1:]])
+                    faces.append([int(p.split('/')[0]) - 1 for p in line.split()[1:]])
 
         return faces, vertices
 
 #
-# Main
+# Engine
 #
 
+class AbstractEngine(ABC):
 
-class App:
+    def __init__(self, width = 1600, height = 900, fps = 60):
+        pg.init()
+        self.fps, self.width, self.height = fps, width, height
+        self.display = pg.display.set_mode((width, height))
+        self.clock = pg.time.Clock()
+        self.running = True
 
-    def __init__(self, scene, fps=30, width=1600, height=900, clock=None, screen=None, render_type='wireframe'):
+    def _on_update_start(self):
+        self.on_handle_events()
 
-        self.fps, self.scene, self.clock, self.screen, = fps, scene, clock, screen
-        self.camera = Camera(width, height, position=np.array([0.0, 0.0, -9.0, 1.0]))        
-        self.renderer = Renderer(self.screen, width, height, render_type, shader=LambertShader())
+    def _on_update_finish(self):
+        self.clock.tick(self.fps)
+
+    def _on_draw_start(self):
+        self.display.fill((0, 0, 0))
+
+    def _on_draw_finish(self):
+        pg.display.flip()
+        pg.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
+
+    @abstractmethod
+    def on_update(self, dt: float):
+        raise NotImplementedError
+
+    @abstractmethod
+    def on_draw(self, surface: pg.Surface):
+        raise NotImplementedError
+
+    @abstractmethod
+    def on_handle_events(self):
+        for e in pg.event.get():
+            if e.type == pg.QUIT or (e.type == pg.KEYDOWN and e.key == pg.K_ESCAPE):
+                self.running = False
 
     def run(self):
+        while self.running:
+            self.on_handle_events()
+            self._on_update_start()
+            self.on_update(dt=self.clock.get_time() / 1000.0)
+            self._on_draw_start()
+            self.on_draw(self.display)
+            self._on_draw_finish()
+            self._on_update_finish()
+        pg.quit()
 
-        while True:
 
-            [pg.quit() for e in pg.event.get() if e.type == pg.QUIT or (e.type==pg.KEYDOWN and e.key==pg.K_ESCAPE)]
-            
-            self.screen.fill(pg.Color('darkslategray'))
-            
-            for mesh in self.scene:
-                # mesh.apply_transform(np.eye(4))                               # placeholder
-                mesh.auto_rotate(0.01)
-                self.renderer.render(self.camera, mesh) 
-            
-            pg.display.flip()
-            pg.display.set_caption(f"FPS: {self.clock.get_fps():.2f}")
-            self.clock.tick(self.fps)
+class Engine(AbstractEngine):
 
+    def __init__(self, scene: Scene):
+        super().__init__()
+        self.scene = scene
+        self.scene.load_textures()
+        self.camera = Camera(self.width, self.height, position=np.array([0.0, 0.0, -9.0, 1.0]))        
+        self.renderer = Renderer(self.display, self.width, self.height, scene.render_type, shader=LambertShader())
+
+    def on_handle_events(self):
+        for e in pg.event.get():
+            if e.type == pg.QUIT or (e.type == pg.KEYDOWN and e.key == pg.K_ESCAPE):
+                self.running = False
+
+    def on_update(self, dt: float):
+        for mesh in self.scene:
+            mesh.auto_rotate(0.01)
+
+    def on_draw(self, surface: pg.Surface = None):
+        # draw all meshes here so screen clearing happens before rendering
+        for mesh in self.scene:
+            self.renderer.render(self.camera, mesh)
+
+#
+# Main & args
+#
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -357,33 +430,22 @@ def get_arguments():
     parser.add_argument("--height", type=int, default=900)
     parser.add_argument("--render_type", type=str, default='wireframe')
     parser.add_argument("--model_name", type=str, default='./assets/models/box3.obj')
-    parser.add_argument("--texture_name", type=str, default='./assets/textures/gold.png')
+    parser.add_argument("--texture_name", type=str, default=None)
     return parser.parse_args()
 
-
 def main():
-
+    
     args = get_arguments()
-
-    pg.init()
-    clock, screen = pg.time.Clock(), pg.display.set_mode((args.width, args.height))
 
     faces, verts = FileManager(args.model_name).load()
 
-    texture = None
-    try:
-        texture = pg.image.load(args.texture_name).convert()
-    except Exception:
-        texture = None
+    scene = Scene(render_type=args.render_type)
+    scene.add( Mesh(faces, verts, position=[ 0.0, 0.0, 0.0, 1.0 ]) )
 
-    scene = Scene()
-    scene.add(
-        Mesh(faces, verts, position=[ 0.0, 0.0, 0.0, 1.0 ], texture=texture)
-    )
-    
-    # 'wireframe', 'solid', 'solid|shader', 'textured', 'textured|rasterizer'
-    App(scene, clock=clock, screen=screen, render_type=args.render_type).run()
+    Engine(scene=scene).run()
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()
+
+# EOF
