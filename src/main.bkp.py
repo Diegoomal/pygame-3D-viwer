@@ -4,6 +4,7 @@ Arquivo único contendo: utilitários de matriz, Transform, Mesh, Scene,
 FileManager, Camera, Shader, Rasterizer, Renderer, App.
 """
 import math
+import argparse
 import numpy as np                                                              # type: ignore
 import pygame as pg                                                             # type: ignore
 import pygame.gfxdraw as gfx                                                    # type: ignore
@@ -84,11 +85,11 @@ class Transform:
         self.scale      = np.array(scale    if scale    is not None else [1.0, 1.0, 1.0], dtype=np.float64)
 
     def matrix(self):
-        t = MatrixOps.translate(*self.position)
-        rx = MatrixOps.rotate_x(self.rotation[0])
-        ry = MatrixOps.rotate_y(self.rotation[1])
-        rz = MatrixOps.rotate_z(self.rotation[2])
-        s = MatrixOps.scale(*self.scale)
+        t   = MatrixOps.translate(*self.position)
+        rx  = MatrixOps.rotate_x(self.rotation[0])
+        ry  = MatrixOps.rotate_y(self.rotation[1])
+        rz  = MatrixOps.rotate_z(self.rotation[2])
+        s   = MatrixOps.scale(*self.scale)
         # Order: scale, rotateZ * rotateY * rotateX, translate
         return s @ (rz @ (ry @ rx)) @ t
 
@@ -390,8 +391,6 @@ class App:
 # -------------------------
 # Entrypoint (exemplo)
 # -------------------------
-
-import argparse
 
 def main():
 
