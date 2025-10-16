@@ -31,8 +31,7 @@ class LambertShader:
         
         normal = np.cross(v1, v2)
         norm = np.linalg.norm(normal)
-        if norm == 0:
-            return (0, 0, 0)
+        if norm == 0: return (0, 0, 0)
         normal /= norm
         
         intensity = max(0, np.dot(normal, self.light_dir))
@@ -73,9 +72,7 @@ class Rasterizer:
         def edge(p1, p2, p): return (p[0] - p1[0]) * (p2[1] - p1[1]) - (p[1] - p1[1]) * (p2[0] - p1[0])
 
         area = edge(pts2d[0], pts2d[1], pts2d[2])
-        if abs(area) < 1e-9:
-            del surf_array; del tex_pixels
-            return
+        if abs(area) < 1e-9: del surf_array; del tex_pixels; return
 
         for y in range(min_y, max_y + 1):
             for x in range(min_x, max_x + 1):
@@ -99,8 +96,7 @@ class Rasterizer:
                 depth = b0 * ptsz[0] + b1 * ptsz[1] + b2 * ptsz[2]
 
                 if zbuffer is None or depth < zbuffer[x, y]:
-                    if zbuffer is not None:
-                        zbuffer[x, y] = depth
+                    if zbuffer is not None: zbuffer[x, y] = depth
                     tx = int(u * tex_w) % tex_w
                     ty = int(v * tex_h) % tex_h
                     surf_array[x, y] = tex_pixels[tx, ty]
@@ -321,6 +317,7 @@ class Scene:
     def __iter__(self):
         return iter(self.meshes)
 
+
 #
 # Utils
 #
@@ -362,7 +359,7 @@ class AbstractEngine(ABC):
         self.on_handle_events()
 
     def _on_update_finish(self):
-        self.clock.tick(self.fps)
+        if self.clock: self.clock.tick(self.fps)
 
     def _on_draw_start(self):
         self.display.fill((0, 0, 0))
@@ -420,6 +417,7 @@ class Engine(AbstractEngine):
         for mesh in self.scene:
             self.renderer.render(self.camera, mesh)
 
+
 #
 # Main & args
 #
@@ -447,5 +445,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# python src/main.py --render_type "wireframe" --model_name "./assets/models/box3.obj"
+# python src/main.py --width 1600 --height 900 --render_type "wireframe" --model_name "./assets/models/box3.obj"
+# python src/main.py --width 1600 --height 900 --render_type "solid|shader" --model_name "./assets/models/box3.obj"
+# python src/main.py --width 1600 --height 900 --render_type "textured" --model_name "./assets/models/box3.obj" --texture_name "./assets/textures/gold.png"
 
 # EOF
